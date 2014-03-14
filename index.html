@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>cdd990</title>
+</head>
+<body onkeydown="OnKeyDown(event); return false;">
+    <canvas id="canvas" width="640" height="480" style="border: 1px solid #c3c3c3;">
+		<p>Your browser does not support canvas.</p>
+	</canvas>
+    <script type="text/javascript">
+
+	    var canvas = document.getElementById('canvas');
+	    var ctx = canvas.getContext('2d');
+	    ctx.lineWidth = 1;
+
+
+	    function Point(x, y) {
+	        this.x = x;
+	        this.y = y;
+	    }
+
+	    function Rand(low, high) {
+	        return Math.floor(Math.random() * (high - low + 1) + low);
+	    }
+
+
+	    // 24x32数组, 0为空, 1为非空
+	    var map = new Array(24);
+	    for (var y = 0; y < 24; y++) {
+	        map[y] = new Array(32);
+	        for (var x = 0; x < 32; x++) {
+	            map[y][x] = 0;
+	        }
+	    }
+	    for (var y = 0; y < 24; y++) {
+	        map[y][0] = map[y][31] = 1;
+	    }
+	    for (var x = 0; x < 32; x++) {
+	        map[0][x] = map[23][x] = 1;
+	    }
+	    map[1][1] = 1;
+
+	    var timer;
+	    var direction = "right";
+	    var dx = 1, dy = 0;
+	    var snake = new Array(new Point(1, 1));
+	    var food = NewFood();
+
+	    Timer();
+
+	    function NewFood() {
+	        var _x = Rand(1, 30);
+	        var _y = Rand(1, 22);
+	        while (map[_y][_x] == 1) {
+	            _x = Rand(1, 30);
+	            _y = Rand(1, 22);
+	        }
+	        return new Point(_x, _y);
+	    }
+
+	    var flag = true;
+	    function OnKeyDown(event) {
+	        if (!flag) return;
+            switch(event.keyCode) {
+                case 37: //Left
+                    if (direction != "right") {
+                        direction = "left";
+                        dx = -1;
+                        dy = 0;
+                    }
+                    break;
+
+                case 38: // Up
+                    if (direction != "down") {
+                        direction = "up";
+                        dx = 0;
+                        dy = -1;
+                    }
+                    break;
+
+                case 39: // Right
+                    if (direction != "left") {
+                        direction = "right";
+                        dx = 1;
+                        dy = 0;
+                    }
+                    break;
+
+                case 40: // Down
+                    if (direction != "up") {
+                        direction = "down";
+                        dx = 0;
+                        dy = 1;
+                    }
+                    break;
+                default:
+                    return;
+            }
+            flag = false;
+	    }
+
+		function Render() {
+		    ctx.fillStyle = '#808080'; // 填充颜色
+		    ctx.fillRect(0, 0, 640, 480);
+
+		    ctx.fillStyle = 'Black';
+		    ctx.fillRect(0, 0, 640, 20);
+		    ctx.fillRect(0, 460, 640, 480);
+		    ctx.fillRect(0, 0, 20, 480);
+		    ctx.fillRect(620, 0, 640, 480);
+
+		    ctx.fillStyle = '#0000ff';
+		    for (p in snake) {
+		        ctx.fillRect(snake[p].x * 20, snake[p].y * 20, 20, 20);
+		    }
+
+		    ctx.fillStyle = '#00ffff';
+		    ctx.fillRect(food.x * 20, food.y * 20, 20, 20);
+		}
+
+		function Go() {
+		    var head = new Point(snake[snake.length - 1].x + dx, snake[snake.length - 1].y + dy);
+		    snake.push(head);
+		    flag = true;
+		    if (map[head.y][head.x] == 0) {
+		        map[head.y][head.x] = 1;
+		    } else {
+		        clearTimeout(timer);
+		        ctx.shadowOffsetX = 2;
+		        ctx.shadowOffsetY = 2;
+		        ctx.shadowBlur = 2;
+		        ctx.shadowColor = "rgba(0, 0, 0, 0.5)"
+		        ctx.font = "50px 微软雅黑";
+		        ctx.fillStyle = "Red";
+		        ctx.fillText("Game Over", 150, 200);
+		        return;
+		    }
+		    if (head.x == food.x && head.y == food.y) {
+		        food = NewFood();
+		    } else {
+		        var tmp = snake[0];
+		        map[tmp.y][tmp.x] = 0;
+		        for (var i = 0; i < snake.length; i++) {
+		            snake[i] = snake[i + 1];
+		        }
+		        snake.pop();
+		    }
+		    Render();
+		}
+
+		function Timer() {
+		    timer = setTimeout("Timer()", 200);
+		    Go();
+        }
+		
+    </script>
+</body>
+</html>
